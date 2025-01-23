@@ -106,6 +106,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             return
         elif self.handle_route('/api/scopes', DataFactory.get_scope_data()):
             return
+        elif self.handle_route('/api/orgs', DataFactory.get_org_data()):
+            return
+        elif self.handle_route('/api/tpp_orgs', DataFactory.get_tpp_org_data()):
+            return
         elif self.handle_route('/api/environment', DataFactory.get_env_data()):
             return
         self.send_error(404, "Not Found")

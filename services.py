@@ -1,5 +1,7 @@
 from tpp import Tpp
 from scope import Scope
+from org import Org
+from tpp_org import TppOrg
 
 class DataFactory:
     """Factory class to manage all data operations."""
@@ -7,7 +9,9 @@ class DataFactory:
     _cache = {
         'client': [],
         'tpp': [],
-        'scope': []
+        'scope': [],
+        'org': [],
+        'tppOrg': []  # Add tppOrg to cache
     }
     _cache_initialized = False
 
@@ -150,3 +154,45 @@ class DataFactory:
             ]
             cls._cache['scope'] = [scope.to_dict() for scope in scope_list]
         return cls._cache['scope']
+
+    @classmethod
+    def get_org_data(cls):
+        """Return organization data from cache."""
+        if not cls._cache_initialized:
+            cls.initialize_cache()
+        if not cls._cache.get('org'):
+            # Initialize org cache if empty
+            org_list = [
+                Org(
+                    org_id=f"ORG{i}",
+                    customer_id_type_code="SSN" if i % 2 == 0 else "EIN",
+                    org_name=f"Organization {i}",
+                    org_desc=f"This is test organization number {i}",
+                    status="active" if i % 3 != 0 else "inactive"
+                ) for i in range(1, 6)
+            ]
+            cls._cache['org'] = [org.to_dict() for org in org_list]
+        return cls._cache['org']
+
+    @classmethod
+    def get_tpp_org_data(cls):
+        """Return TPP-Organization relationship data from cache."""
+        if not cls._cache_initialized:
+            cls.initialize_cache()
+        if not cls._cache.get('tppOrg'):
+            # Get existing TPPs and Orgs
+            tpps = [Tpp.from_dict(tpp) for tpp in cls.get_tpp_data()]
+            orgs = [Org.from_dict(org) for org in cls.get_org_data()]
+            
+            # Create sample TPP-Org relationships
+            tpp_org_list = []
+            for i, (tpp, org) in enumerate(zip(tpps[:3], orgs[:3])):  # Create 3 relationships
+                tpp_org = TppOrg(
+                    org=org,
+                    tpp=tpp,
+                    tpp_org_id=f"TPP_ORG_{i+1}"
+                )
+                tpp_org_list.append(tpp_org)
+            
+            cls._cache['tppOrg'] = [tpp_org.to_dict() for tpp_org in tpp_org_list]
+        return cls._cache['tppOrg']
