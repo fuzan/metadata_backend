@@ -1,5 +1,5 @@
 from client import Client
-from tpp import Tpp
+from tpp import Tpp, Status
 from scope import Scope
 from org import Org
 from tpp_org import TppOrg
@@ -36,7 +36,10 @@ class MockDataProducer:
                 tpp_type="Aggregator" if i % 2 == 0 else "Processor",
                 verified_client=f"client{i}",
                 scope_name_list="fdx:read fdx:write",
-                tpp_desc=f"This is test TPP number {i}"
+                tpp_desc=f"This is test TPP number {i}",
+                contact_name=f"Contact {i}",
+                contact_email=f"contact{i}@example.com",
+                status=Status.ACTIVE if i % 2 == 0 else Status.INACTIVE
             ).to_dict()
             for i in range(1, count + 1)
         ]
