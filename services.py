@@ -1,17 +1,15 @@
-from tpp import Tpp
-from scope import Scope
-from org import Org
-from tpp_org import TppOrg
+from mock_data import MockDataProducer
 
-class DataFactory:
-    """Factory class to manage all data operations."""
+class CacheStorage:
+    """Class to manage all data operations through cache."""
     
     _cache = {
         'client': [],
         'tpp': [],
         'scope': [],
         'org': [],
-        'tppOrg': []  # Add tppOrg to cache
+        'tppOrg': [],
+        'env': []  # Add env to cache
     }
     _cache_initialized = False
 
@@ -19,19 +17,17 @@ class DataFactory:
     def initialize_cache(cls):
         """Initialize the cache with default data."""
         if not cls._cache_initialized:
-            cls._cache['client'] = [
-                {
-                    "clientId": str(i),
-                    "clientDesc": f"this is testing client {i}",
-                    "clientName": f"Robinshood client {i if i <= 5 else 5}",
-                    "clientSecret": "123456secret",
-                    "scopeNameList": "fdx:read fdx:write",
-                    "tppId": "TestAggregator",
-                    "contacts": ["zanfu@bofa.com", "haha@bofa.com"],
-                    "status": "active"
-                }
-                for i in range(1, 16)
-            ]
+            # Load all mock data at startup
+            cls._cache['client'] = MockDataProducer.generate_clients()
+            cls._cache['tpp'] = MockDataProducer.generate_tpps()
+            cls._cache['scope'] = MockDataProducer.generate_scopes()
+            cls._cache['org'] = MockDataProducer.generate_orgs()
+            cls._cache['env'] = MockDataProducer.generate_env_data()
+            # TPP-Org relationships need TPP and Org data
+            cls._cache['tppOrg'] = MockDataProducer.generate_tpp_org_relationships(
+                cls._cache['tpp'],
+                cls._cache['org']
+            )
             cls._cache_initialized = True
 
     @classmethod
@@ -57,65 +53,20 @@ class DataFactory:
                 return True
         return False
 
-    @classmethod
-    def delete_client_batch(cls, client_ids: list) -> dict:
-        """Delete multiple clients by their IDs."""
-        success_ids = []
-        failed_ids = []
-        
-        for client_id in client_ids:
-            if cls.delete_from_cache(client_id, 'client'):
-                success_ids.append(client_id)
-            else:
-                failed_ids.append(client_id)
-        
-        return {
-            "status": "success" if not failed_ids else "partial",
-            "deleted": success_ids,
-            "failed": failed_ids,
-            "message": f"Successfully deleted {len(success_ids)} clients, failed to delete {len(failed_ids)} clients"
-        }
-
-    @classmethod
-    def get_client_data(cls):
-        """Return client data from cache."""
-        if not cls._cache_initialized:
-            cls.initialize_cache()
-        return cls._cache['client']
-
-    @classmethod
-    def get_client_by_id(cls, client_id):
-        """Get a single client by ID."""
-        clients = cls.get_client_data()
-        return next((client for client in clients if client['clientId'] == client_id), None)
+    # Remove delete_client_batch method as it's now in Client class
 
     @classmethod
     def get_env_data(cls):
-        """Return environment data."""
-        return [
-            {"id": "1", "name": "dev 1"},
-            {"id": "2", "name": "dev 2"},
-            {"id": "3", "name": "sit 1"},
-            {"id": "4", "name": "prod 1"}
-        ]
+        """Return environment data from cache."""
+        if not cls._cache_initialized:
+            cls.initialize_cache()
+        return cls._cache['env']
 
     @classmethod
     def get_tpp_data(cls):
         """Return TPP data from cache."""
         if not cls._cache_initialized:
             cls.initialize_cache()
-        if not cls._cache.get('tpp'):
-            tpp_list = [
-                Tpp(
-                    tpp_id=f"TPP{i}",
-                    tpp_name=f"Test TPP {i}",
-                    tpp_type="Aggregator" if i % 2 == 0 else "Processor",
-                    verified_client=f"client{i}",
-                    scope_name_list="fdx:read fdx:write",
-                    tpp_desc=f"This is test TPP number {i}"
-                ) for i in range(1, 6)
-            ]
-            cls._cache['tpp'] = [tpp.to_dict() for tpp in tpp_list]
         return cls._cache['tpp']
 
     @classmethod
@@ -129,30 +80,6 @@ class DataFactory:
         """Return scope data from cache."""
         if not cls._cache_initialized:
             cls.initialize_cache()
-        if not cls._cache.get('scope'):
-            scope_list = [
-                Scope(
-                    scope_name="fdx:read",
-                    mapping_url="/api/fdx/read",
-                    scope_desc="FDX Read Access Permission"
-                ),
-                Scope(
-                    scope_name="fdx:write",
-                    mapping_url="/api/fdx/write",
-                    scope_desc="FDX Write Access Permission"
-                ),
-                Scope(
-                    scope_name="fdx:admin",
-                    mapping_url="/api/fdx/admin",
-                    scope_desc="FDX Admin Access Permission"
-                ),
-                Scope(
-                    scope_name="fdx:delete",
-                    mapping_url="/api/fdx/delete",
-                    scope_desc="FDX Delete Access Permission"
-                )
-            ]
-            cls._cache['scope'] = [scope.to_dict() for scope in scope_list]
         return cls._cache['scope']
 
     @classmethod
@@ -160,18 +87,6 @@ class DataFactory:
         """Return organization data from cache."""
         if not cls._cache_initialized:
             cls.initialize_cache()
-        if not cls._cache.get('org'):
-            # Initialize org cache if empty
-            org_list = [
-                Org(
-                    org_id=f"ORG{i}",
-                    customer_id_type_code="SSN" if i % 2 == 0 else "EIN",
-                    org_name=f"Organization {i}",
-                    org_desc=f"This is test organization number {i}",
-                    status="active" if i % 3 != 0 else "inactive"
-                ) for i in range(1, 6)
-            ]
-            cls._cache['org'] = [org.to_dict() for org in org_list]
         return cls._cache['org']
 
     @classmethod
@@ -179,20 +94,4 @@ class DataFactory:
         """Return TPP-Organization relationship data from cache."""
         if not cls._cache_initialized:
             cls.initialize_cache()
-        if not cls._cache.get('tppOrg'):
-            # Get existing TPPs and Orgs
-            tpps = [Tpp.from_dict(tpp) for tpp in cls.get_tpp_data()]
-            orgs = [Org.from_dict(org) for org in cls.get_org_data()]
-            
-            # Create sample TPP-Org relationships
-            tpp_org_list = []
-            for i, (tpp, org) in enumerate(zip(tpps[:3], orgs[:3])):  # Create 3 relationships
-                tpp_org = TppOrg(
-                    org=org,
-                    tpp=tpp,
-                    tpp_org_id=f"TPP_ORG_{i+1}"
-                )
-                tpp_org_list.append(tpp_org)
-            
-            cls._cache['tppOrg'] = [tpp_org.to_dict() for tpp_org in tpp_org_list]
         return cls._cache['tppOrg']
