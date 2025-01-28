@@ -1,8 +1,4 @@
-from enum import Enum
-
-class Status(Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
+from entities.status import Status
 
 class Tpp:
     """Entity class representing a Third Party Provider (TPP)."""
