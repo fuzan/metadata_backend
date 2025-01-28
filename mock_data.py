@@ -3,7 +3,7 @@ from entities.tpp import Tpp, Status
 from entities.scope import Scope
 from entities.org import Org
 from entities.tpp_org import TppOrg
-from boa_env import BoaEnv
+from entities.boa_env import BoaEnv
 from entities.client_org import ClientOrg
 
 class MockDataProducer:
