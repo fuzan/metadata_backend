@@ -1,9 +1,10 @@
-from client import Client
-from tpp import Tpp, Status
-from scope import Scope
-from org import Org
-from tpp_org import TppOrg
+from entities.client import Client
+from entities.tpp import Tpp, Status
+from entities.scope import Scope
+from entities.org import Org
+from entities.tpp_org import TppOrg
 from boa_env import BoaEnv
+from entities.client_org import ClientOrg
 
 class MockDataProducer:
     """Class to generate mock data for testing and development."""
@@ -83,6 +84,21 @@ class MockDataProducer:
                 org=org,
                 tpp=tpp,
                 tpp_org_id=f"TPP_ORG_{i+1}"
+            )
+            relationships.append(relationship.to_dict())
+        return relationships
+
+    @staticmethod
+    def generate_client_org_relationships(clients: list, orgs: list, count: int = 3) -> list:
+        """Generate mock Client-Org relationships."""
+        relationships = []
+        for i in range(min(count, len(clients), len(orgs))):
+            client = Client.from_dict(clients[i])
+            org = Org.from_dict(orgs[i])
+            relationship = ClientOrg(
+                org=org,
+                client=client,
+                client_org_id=f"CLIENT_ORG_{i+1}"
             )
             relationships.append(relationship.to_dict())
         return relationships

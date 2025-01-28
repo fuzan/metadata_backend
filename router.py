@@ -1,6 +1,9 @@
-from client_service import ClientService
-from tpp_service import TppService
-from services import CacheStorage
+from services.client_service import ClientService
+from services.tpp_service import TppService
+from services.org_service import OrgService
+from services.client_org_service import ClientOrgService
+from services.tpp_org_service import TppOrgService
+from cache import CacheStorage
 
 class Router:
     """Router class to handle request dispatching."""
@@ -10,6 +13,9 @@ class Router:
         self._routes = {}
         self._register_client_routes()
         self._register_tpp_routes()
+        self._register_org_routes()
+        self._register_client_org_routes()
+        self._register_tpp_org_routes()
         self._register_other_routes()
 
     def _register_client_routes(self):
@@ -68,29 +74,96 @@ class Router:
 
         self._routes.update(registered_routes)
 
+    def _register_org_routes(self):
+        """Register all organization routes from decorated methods dynamically."""
+        registered_routes = {}
+        org_service = OrgService()
+        org_service.initialize_dao(CacheStorage)
+        
+        # Scan all methods in OrgService class
+        for method_name in dir(OrgService):
+            method = getattr(org_service, method_name)
+            if hasattr(method, '_route_path') and hasattr(method, '_route_method'):
+                route_key = (method._route_path, method._route_method)
+                
+                # Get required parameters from route info
+                required_params = []
+                if hasattr(method, '_route_params'):
+                    required_params.extend(method._route_params)
+                if method._route_method in ['POST', 'PATCH', 'DELETE']:
+                    required_params.append('data')
+                if 'Batch' in method._route_path:
+                    required_params = ['orgIds']
+
+                registered_routes[route_key] = (method, required_params)
+
+        if not registered_routes:
+            raise ValueError("No routes found in OrgService class")
+
+        self._routes.update(registered_routes)
+
+    def _register_client_org_routes(self):
+        """Register all client-organization routes from decorated methods dynamically."""
+        registered_routes = {}
+        client_org_service = ClientOrgService()
+        client_org_service.initialize_dao(CacheStorage)
+        
+        # Scan all methods in ClientOrgService class
+        for method_name in dir(ClientOrgService):
+            method = getattr(client_org_service, method_name)
+            if hasattr(method, '_route_path') and hasattr(method, '_route_method'):
+                route_key = (method._route_path, method._route_method)
+                
+                # Get required parameters from route info
+                required_params = []
+                if hasattr(method, '_route_params'):
+                    required_params.extend(method._route_params)
+                if method._route_method in ['POST', 'PATCH', 'DELETE']:
+                    required_params.append('data')
+                if 'Batch' in method._route_path:
+                    required_params = ['clientOrgIds']
+
+                registered_routes[route_key] = (method, required_params)
+
+        if not registered_routes:
+            raise ValueError("No routes found in ClientOrgService class")
+
+        self._routes.update(registered_routes)
+
+    def _register_tpp_org_routes(self):
+        """Register all TPP-organization routes from decorated methods dynamically."""
+        registered_routes = {}
+        tpp_org_service = TppOrgService()
+        tpp_org_service.initialize_dao(CacheStorage)
+        
+        # Scan all methods in TppOrgService class
+        for method_name in dir(TppOrgService):
+            method = getattr(tpp_org_service, method_name)
+            if hasattr(method, '_route_path') and hasattr(method, '_route_method'):
+                route_key = (method._route_path, method._route_method)
+                
+                # Get required parameters from route info
+                required_params = []
+                if hasattr(method, '_route_params'):
+                    required_params.extend(method._route_params)
+                if method._route_method in ['POST', 'PATCH', 'DELETE']:
+                    required_params.append('data')
+                if 'Batch' in method._route_path:
+                    required_params = ['tppOrgIds']
+
+                registered_routes[route_key] = (method, required_params)
+
+        if not registered_routes:
+            raise ValueError("No routes found in TppOrgService class")
+
+        self._routes.update(registered_routes)
+
     def _register_other_routes(self):
         """Register non-client routes."""
         other_routes = {
-            # TPP routes
-            ('/api/tpps', 'GET'): (
-                lambda: CacheStorage.get_tpp_data(), 
-                []
-            ),
-            ('/api/tpps/{id}', 'GET'): (
-                lambda id: CacheStorage.get_tpp_by_id(id), 
-                ['id']
-            ),
             # Other routes
             ('/api/scopes', 'GET'): (
                 lambda: CacheStorage.get_scope_data(), 
-                []
-            ),
-            ('/api/orgs', 'GET'): (
-                lambda: CacheStorage.get_org_data(), 
-                []
-            ),
-            ('/api/tpp_orgs', 'GET'): (
-                lambda: CacheStorage.get_tpp_org_data(), 
                 []
             ),
             ('/api/environment', 'GET'): (

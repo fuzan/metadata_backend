@@ -1,5 +1,5 @@
-from client import Client
-from base_service import BaseService
+from entities.client import Client
+from services.base_service import BaseService
 from decorators import routing
 
 class ClientService(BaseService):

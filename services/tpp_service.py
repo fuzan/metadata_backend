@@ -1,5 +1,5 @@
-from tpp import Tpp
-from base_service import BaseService
+from entities.tpp import Tpp
+from services.base_service import BaseService
 from decorators import routing
 
 class TppService(BaseService):
