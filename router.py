@@ -1,3 +1,4 @@
+import re
 from services.client_service import ClientService
 from services.tpp_service import TppService
 from services.org_service import OrgService
@@ -186,20 +187,30 @@ class Router:
         route_segments = route_path.split('/')
         path_segments = actual_path.split('/')
 
-        # Check if segment counts match
+        # Check if segment counts match or if actual_path is part of route_path
         if len(route_segments) != len(path_segments):
-            return False, {}
+            if actual_path.startswith(route_path):
+                return True, {}
 
-        # Extract parameters
+        # Extract query parameters from the actual path
         params = {}
-        for route_seg, path_seg in zip(route_segments, path_segments):
-            # Check if segment is a parameter
-            if route_seg.startswith('{') and route_seg.endswith('}'):
-                param_name = route_seg[1:-1]  # Remove { and }
-                params[param_name] = path_seg
-            # Check if non-parameter segments match
-            elif route_seg != path_seg:
-                return False, {}
+        if '?' in actual_path:
+            actual_path, query_string = actual_path.split('?', 1)
+            query_params = dict(qc.split('=') for qc in query_string.split('&'))
+            params.update(query_params)
+
+        # Extract path parameters from the actual path
+        path_pattern = re.sub(r'{[^/]+}', r'([^/]+)', route_path)
+        match = re.match(path_pattern, actual_path)
+        if match:
+            path_params = match.groups()
+            param_names = [
+                segment[1:-1]  # Remove { and }
+                for segment in route_segments
+                if segment.startswith('{') and segment.endswith('}')
+            ]
+            for param_name, param_value in zip(param_names, path_params):
+                params[param_name] = param_value
 
         return True, params
 
@@ -222,7 +233,7 @@ class Router:
         route_match = None
         route_params = {}
 
-        for (route_path, route_method), (handler, required_params) in self._routes.items():
+        for (route_path, route_method), (handler, _) in self._routes.items():
             if method != route_method:
                 continue
 
@@ -236,15 +247,16 @@ class Router:
         if not route_match:
             raise ValueError(f"Route not found: {method} {path}")
 
-        handler, required_params = self._routes[route_match]
+        handler = self._routes[route_match][0]
 
         # Validate and collect parameters
         handler_params = {}
-        for param in required_params:
-            if param in route_params:
-                handler_params[param] = route_params[param]
-            elif kwargs['data']:
-                handler_params['data'] = kwargs['data']
+        
+        for param in route_params:
+            handler_params[param] = route_params[param]
+        
+        if 'data' in kwargs:
+            handler_params['data'] = kwargs['data']
 
         # Call handler with collected parameters
         return handler(**handler_params)

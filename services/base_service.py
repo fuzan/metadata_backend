@@ -40,9 +40,9 @@ class BaseService:
         return cls._dao.delete_batch(ids)
 
     @classmethod
-    def get_all(cls) -> list:
-        """Return all entities."""
-        return cls._dao.get_batch()
+    def get_all(cls, filter_params: dict = None) -> list:
+        """Return all entities, optionally filtered."""
+        return cls._dao.get_batch(filter_params)
 
     @classmethod
     def get_by_id(cls, id: str) -> dict:

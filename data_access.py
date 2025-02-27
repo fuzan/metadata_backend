@@ -119,15 +119,25 @@ class DaoImplementation(Dao[T]):
             
         items = self.cache_storage._cache[self.cache_type]
         
-        if not filter_params:
-            return items
+        if filter_params and filter_params.get('all') != 'true':
+            # Apply filters if provided
+            filtered_items = items
+            for key, value in filter_params.items():
+                filtered_items = [item for item in filtered_items if item.get(key) == value]
+        else:
+            filtered_items = items
 
-        # Apply filters if provided
-        filtered_items = items
-        for key, value in filter_params.items():
-            filtered_items = [item for item in filtered_items if item.get(key) == value]
+        # Create the JSON structure
+        result = {
+            "status": "success",
+            "pagination": {
+                "limit": 10, 
+                "total": len(filtered_items)
+            },
+            "content": filtered_items
+        }
         
-        return filtered_items
+        return result
 
     def create(self, entity: T) -> T:
         """Create a new entity."""

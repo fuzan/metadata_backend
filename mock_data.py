@@ -10,7 +10,7 @@ class MockDataProducer:
     """Class to generate mock data for testing and development."""
 
     @staticmethod
-    def generate_clients(count: int = 15) -> list:
+    def generate_clients(count: int = 150) -> list:
         """Generate mock client data."""
         return [
             Client(
@@ -48,16 +48,17 @@ class MockDataProducer:
     @staticmethod
     def generate_scopes() -> list:
         """Generate mock scope data."""
-        scope_configs = [
-            ("fdx:read", "/api/fdx/read", "FDX Read Access Permission"),
-            ("fdx:write", "/api/fdx/write", "FDX Write Access Permission"),
-            ("fdx:admin", "/api/fdx/admin", "FDX Admin Access Permission"),
-            ("fdx:delete", "/api/fdx/delete", "FDX Delete Access Permission")
-        ]
-        return [
-            Scope(name, url, desc).to_dict()
-            for name, url, desc in scope_configs
-        ]
+        scope_configs = {"status" : "success" , "content" : [
+            {"scopeName" : "fdx:read", "mappingURLList" : "/api/fdx/read", "scopeDesc" : "FDX Read Access Permission"},
+            {"scopeName" : "fdx:read", "mappingURLList" : "/api/fdx/write", "scopeDesc" : "FDX Write Access Permission"},
+            {"scopeName" : "fdx:delete", "mappingURLList" : "/api/fdx/delete", "scopeDesc" : "FDX Read Delete Permission"}
+        ]}
+        # return [
+        #     Scope(name, url, desc).to_dict()
+        #     for name, url, desc in scope_configs
+        # ]
+        return scope_configs
+        
 
     @staticmethod
     def generate_orgs(count: int = 5) -> list:
@@ -106,13 +107,11 @@ class MockDataProducer:
     @staticmethod
     def generate_env_data() -> list:
         """Generate mock environment data."""
-        env_configs = [
-            ("1", "dev 1", "SITE001", True),
-            ("2", "dev 2", "SITE002", True),
-            ("3", "sit 1", "SITE003", False),
-            ("4", "prod 1", "SITE004", True)
-        ]
-        return [
-            BoaEnv(env_id, name, site_id, is_still_using).to_dict()
-            for env_id, name, site_id, is_still_using in env_configs
-        ]
+        env_configs = {"status" : "success", "content": [
+            "dev 1","dev 2","sit 1","prod 1"
+        ]}
+        # return [
+        #     BoaEnv(env_id, name, site_id, is_still_using).to_dict()
+        #     for env_id, name, site_id, is_still_using in env_configs
+        # ]
+        return env_configs

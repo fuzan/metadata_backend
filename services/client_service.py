@@ -39,9 +39,9 @@ class ClientService(BaseService):
 
     @classmethod
     @routing('/api/clients', 'GET')
-    def get_all(cls) -> list:
+    def get_all(cls, **query_params) -> dict:
         """Return all clients."""
-        return super().get_all()
+        return super().get_all(query_params)
 
     @classmethod
     @routing('/api/clients/{id}', 'GET')
