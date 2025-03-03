@@ -164,11 +164,11 @@ class Router:
         other_routes = {
             # Other routes
             ('/api/scopes', 'GET'): (
-                lambda: CacheStorage.get_scope_data(), 
+                lambda **kwargs: CacheStorage.get_scope_data(), 
                 []
             ),
             ('/api/environment', 'GET'): (
-                lambda: CacheStorage.get_env_data(), 
+                lambda **kwargs: CacheStorage.get_env_data(), 
                 []
             )
         }
@@ -189,8 +189,7 @@ class Router:
 
         # Check if segment counts match or if actual_path is part of route_path
         if len(route_segments) != len(path_segments):
-            if actual_path.startswith(route_path):
-                return True, {}
+            return False, {}
 
         # Extract query parameters from the actual path
         params = {}
@@ -211,7 +210,9 @@ class Router:
             ]
             for param_name, param_value in zip(param_names, path_params):
                 params[param_name] = param_value
-
+        else:
+            return False, {}
+        
         return True, params
 
     def dispatch(self, path: str, method: str, **kwargs) -> dict:
