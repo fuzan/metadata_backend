@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 from router import Router
+from entities.client import Client
 from services import CacheStorage
 
 class TestRouter(unittest.TestCase):
@@ -9,6 +10,7 @@ class TestRouter(unittest.TestCase):
     def setUp(self):
         """Set up test environment before each test."""
         self.router = Router()
+        CacheStorage.initialize_cache()
         self.mock_cache = MagicMock()
 
     def test_path_parameter_extraction(self):

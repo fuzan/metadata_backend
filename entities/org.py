@@ -1,8 +1,10 @@
+from entities.status import Status
+
 class Org:
     """Entity class representing an Organization."""
 
     def __init__(self, org_id: str, customer_id_type_code: str,
-                 org_name: str, org_desc: str, status: str):
+                 org_name: str, org_desc: str, status: Status = Status.ACTIVE):
         """Initialize a new Organization instance."""
         self.org_id = org_id
         self.customer_id_type_code = customer_id_type_code
@@ -28,5 +30,5 @@ class Org:
             customer_id_type_code=data.get('customerIdTypeCode', ''),
             org_name=data.get('orgName', ''),
             org_desc=data.get('orgDesc', ''),
-            status=data.get('status', '')
+            status=data.get('status', Status.ACTIVE)
         )

@@ -1,3 +1,5 @@
+from entities.status import Status
+
 class Client:
     """Entity class representing a Client."""
     
@@ -5,7 +7,7 @@ class Client:
     
     def __init__(self, client_id: str, client_name: str, client_desc: str,
                  tpp_id: str, client_secret: str, logo_uri: str, uri: str,
-                 contacts: list, status: str = 'active'):
+                 contacts: list, status: Status = Status.ACTIVE):
         """Initialize a new Client instance."""
         self.client_id = client_id
         self.client_name = client_name
@@ -43,7 +45,7 @@ class Client:
             logo_uri=data.get('logoUri', ''),
             uri=data.get('uri', ''),
             contacts=data.get('contacts', []),
-            status=data.get('status', 'active')
+            status=data.get('status', Status.ACTIVE)
         )
 
     @staticmethod

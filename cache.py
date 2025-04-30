@@ -9,6 +9,7 @@ class CacheStorage:
         'scope': [],
         'org': [],
         'tppOrg': [],
+        'clientOrg': [],  # Add clientOrg to cache
         'env': []  # Add env to cache
     }
     _cache_initialized = False
@@ -26,6 +27,11 @@ class CacheStorage:
             # TPP-Org relationships need TPP and Org data
             cls._cache['tppOrg'] = MockDataProducer.generate_tpp_org_relationships(
                 cls._cache['tpp'],
+                cls._cache['org']
+            )
+            # Client-Org relationships need Client and Org data
+            cls._cache['clientOrg'] = MockDataProducer.generate_client_org_relationships(
+                cls._cache['client'],
                 cls._cache['org']
             )
             cls._cache_initialized = True
@@ -95,3 +101,10 @@ class CacheStorage:
         if not cls._cache_initialized:
             cls.initialize_cache()
         return cls._cache['tppOrg']
+
+    @classmethod
+    def get_client_org_data(cls):
+        """Return Client-Organization relationship data from cache."""
+        if not cls._cache_initialized:
+            cls.initialize_cache()
+        return cls._cache['clientOrg']

@@ -1,5 +1,6 @@
+import re
 from functools import wraps
-from typing import List
+from typing import Callable
 
 VALID_METHODS = {'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'}
 
@@ -16,9 +17,18 @@ def routing(path: str, method: str):
     if method not in VALID_METHODS:
         raise ValueError(f"Method must be one of: {', '.join(VALID_METHODS)}")
 
-    def decorator(func):
+    def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            # Extract path parameters from the URL
+            actual_path = kwargs.get('path', '')
+            path_pattern = re.sub(r'{[^/]+}', r'([^/]+)', path)
+            match = re.match(path_pattern, actual_path)
+            if match:
+                path_params = match.groups()
+                for param_name, param_value in zip(wrapper._route_params, path_params):
+                    kwargs[param_name] = param_value
+
             return func(*args, **kwargs)
 
         # Store routing info and required parameters
